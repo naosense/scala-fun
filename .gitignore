@@ -1,6 +1,24 @@
 # Project exclude paths
+./.idea
 /project/project/target/
 /project/target/
 /target/
 /target/scala-2.13/classes/
 /target/scala-2.13/test-classes/
+/.idea/.gitignore
+/project/build.properties
+/.idea/codeStyles/codeStyleConfig.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/codeStyles/Project.xml
+/.idea/sbt.xml
+/.idea/libraries/sbt__org_scala_lang_modules_scala_xml_2_13_1_2_0_jar.xml
+/.idea/libraries/sbt__org_scala_lang_scala_library_2_13_1_jar.xml
+/.idea/libraries/sbt__org_scala_lang_scala_reflect_2_13_1_jar.xml
+/.idea/libraries/sbt__org_scalactic_scalactic_2_13_3_1_1_jar.xml
+/.idea/libraries/sbt__org_scalatest_scalatest_2_13_3_1_1_jar.xml
+/.idea/modules/scala-fun.iml
+/.idea/modules/scala-fun-build.iml
+/.idea/scala_compiler.xml
+/.idea/scala_settings.xml
+/.idea/vcs.xml
