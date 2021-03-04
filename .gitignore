@@ -1,12 +1,12 @@
 # Project exclude paths
 ./.idea
+./.bsp
 /project/project/target/
 /project/target/
 /target/
 /target/scala-2.13/classes/
 /target/scala-2.13/test-classes/
 /.idea/.gitignore
-/project/build.properties
 /.idea/codeStyles/codeStyleConfig.xml
 /.idea/misc.xml
 /.idea/modules.xml
