@@ -1,7 +1,6 @@
-package scalatest
+package play
 
-import scala.concurrent.{Future, Promise}
-import scala.util.{Failure, Success}
+import scala.concurrent.Promise
 
 object Hello extends App {
   val p = new Person("Alvin Alexander")

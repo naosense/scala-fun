@@ -1,3 +1,3 @@
-package object fp {
+package object fpinscala {
   // Functional Programming in Scala exercise
 }

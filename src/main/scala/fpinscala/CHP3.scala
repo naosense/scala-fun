@@ -1,6 +1,6 @@
-package fp
+package fpinscala
 
-import fp.CHP3.List.foldRight
+import fpinscala.CHP3.List.foldRight
 
 import scala.annotation.tailrec
 
