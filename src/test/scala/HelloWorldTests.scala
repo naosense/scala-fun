@@ -1,4 +1,4 @@
-import play.Person
+import playground.Person
 
 class HelloWorldTests extends munit.FunSuite {
 

@@ -1,4 +1,4 @@
-package play
+package playground
 
 import scala.util.{ Failure, Success, Try }
 
