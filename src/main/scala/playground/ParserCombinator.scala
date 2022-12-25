@@ -100,7 +100,6 @@ object ParserCombinator {
       {
         var result = Vector[A]()
         var remain = input
-
         var break = false
         while (!break) {
           parser.parse(remain) match {
