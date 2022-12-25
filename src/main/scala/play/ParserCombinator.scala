@@ -11,13 +11,14 @@ object ParserCombinator {
     }
   }
 
-  def matchLiteral(expected: String): Parser[Unit] = { (input: String) =>
-    {
-      input.take(expected.length) match {
-        case s if s == expected => Success((input.drop(expected.length), ()))
-        case _                  => Failure(ParseError(input))
+  def matchLiteral(expected: String): Parser[Unit] = {
+    (input: String) =>
+      {
+        input.take(expected.length) match {
+          case s if s == expected => Success((input.drop(expected.length), ()))
+          case _                  => Failure(ParseError(input))
+        }
       }
-    }
   }
 
   def identifier(input: String): ParseResult[String] = {
@@ -34,26 +35,28 @@ object ParserCombinator {
     Success((input.drop(nextIndex), matched.toString()))
   }
 
-  def pair[R1, R2](parser1: Parser[R1], parser2: Parser[R2]): Parser[(R1, R2)] = { (input: String) =>
-    {
-      parser1(input) match {
-        case Success((nextInput, result1)) =>
-          parser2(nextInput) match {
-            case Success((finalInput, result2)) => Success((finalInput, (result1, result2)))
-            case Failure(ex)                    => Failure(ex)
-          }
-        case Failure(ex) => Failure(ex)
+  def pair[R1, R2](parser1: Parser[R1], parser2: Parser[R2]): Parser[(R1, R2)] = {
+    (input: String) =>
+      {
+        parser1(input) match {
+          case Success((nextInput, result1)) =>
+            parser2(nextInput) match {
+              case Success((finalInput, result2)) => Success((finalInput, (result1, result2)))
+              case Failure(ex)                    => Failure(ex)
+            }
+          case Failure(ex) => Failure(ex)
+        }
       }
-    }
   }
 
-  def map[A, B](parser: Parser[A], fn: (A) => B): Parser[B] = { (input: String) =>
-    {
-      parser(input) match {
-        case Success((nextInput, result)) => Success((nextInput, fn(result)))
-        case err @ Failure(_)             => err.asInstanceOf[ParseResult[B]]
+  def map[A, B](parser: Parser[A], fn: (A) => B): Parser[B] = {
+    (input: String) =>
+      {
+        parser(input) match {
+          case Success((nextInput, result)) => Success((nextInput, fn(result)))
+          case err @ Failure(_)             => err.asInstanceOf[ParseResult[B]]
+        }
       }
-    }
   }
 
   // Tuples cannot be directly destructured in method or function parameters.
@@ -92,22 +95,23 @@ object ParserCombinator {
       }
   }
 
-  def zeroOrMore[A](parser: Parser[A]): Parser[Vector[A]] = { (input: String) =>
-    {
-      var result = Vector[A]()
-      var remain = input
+  def zeroOrMore[A](parser: Parser[A]): Parser[Vector[A]] = {
+    (input: String) =>
+      {
+        var result = Vector[A]()
+        var remain = input
 
-      var break = false
-      while (!break) {
-        parser.parse(remain) match {
-          case Success((nextInput, nextItem)) =>
-            remain = nextInput
-            result :+= nextItem
-          case Failure(_) => break = true
+        var break = false
+        while (!break) {
+          parser.parse(remain) match {
+            case Success((nextInput, nextItem)) =>
+              remain = nextInput
+              result :+= nextItem
+            case Failure(_) => break = true
+          }
         }
+        Success((remain, result))
       }
-      Success((remain, result))
-    }
   }
 
   type ParseResult[Output] = Try[(String, Output)]
