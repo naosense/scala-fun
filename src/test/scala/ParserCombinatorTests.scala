@@ -1,6 +1,6 @@
 import play.ParserCombinator._
 
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 class ParserCombinatorTests extends munit.FunSuite {
 

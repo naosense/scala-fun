@@ -11,8 +11,3 @@ object Hello extends App {
 }
 
 class Person(var name: String)
-
-
-
-
-
