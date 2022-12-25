@@ -64,7 +64,7 @@ object ParserCombinator {
     map(pair(parser1, parser2), (r: (R1, R2)) => r._1)
   }
 
-  // Tuples cannot be directly destructured in method or function parameters.
+  // ditto
   def right[R1, R2](parser1: Parser[R1], parser2: Parser[R2]): Parser[R2] = {
     map(pair(parser1, parser2), (r: (R1, R2)) => r._2)
   }
