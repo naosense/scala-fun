@@ -142,6 +142,35 @@ object ParserCombinator {
       .map({ case (name, attributes) => Element(name, attributes, Vector()) })
   }
 
+  def openElement(): Parser[Element] = {
+    left(elementStart(), matchLiteral(">"))
+      .map({ case (name, attributes) => Element(name, attributes, Vector()) })
+  }
+
+  def either[A](parser1: Parser[A], parser2: Parser[A]): Parser[A] = {
+    (input: String) => {
+      parser1(input) match {
+        case ok@Success(_) => ok
+        case _ => parser2(input)
+      }
+    }
+  }
+
+  def element(): Parser[Element] = {
+    either(singleElement(), openElement())
+  }
+
+  def parentElement(): Parser[Element] = {
+    pair(openElement(), left(zeroOrMore(element(), closeElement())))
+  }
+
+  def closeElement(expected: String): Parser[String] = {
+    right(
+      matchLiteral("</"),
+      left(identifier, matchLiteral(">"))
+    ).pred(name => name == expected)
+  }
+
   type ParseResult[Output] = Try[(String, Output)]
 
   trait Parser[Output] extends (String => ParseResult[Output]) {
@@ -155,6 +184,15 @@ object ParserCombinator {
 
     def pred(predicate: Output => Boolean): Parser[Output] = {
       ParserCombinator.pred(this, predicate)
+    }
+
+    def flatMap[NewOutput](fn: Output => Parser[NewOutput]): Parser[NewOutput] = {
+      (input: String) => {
+        this (input) match {
+          case Success((nextInput, result)) => fn(result).parse(nextInput)
+          case err@Failure(_) => err.asInstanceOf[ParseResult[NewOutput]]
+        }
+      }
     }
   }
 
