@@ -119,7 +119,7 @@ object ParserCombinator {
     right(
       matchLiteral("\""),
       left(
-        zeroOrMore(pred(anyChar, (c: Char) => c != '"')),
+        zeroOrMore((anyChar: Parser[Char]).pred((c: Char) => c != '"')),
         matchLiteral("\"")
       )
     ).map((chars: Vector[Char]) => chars.mkString)
@@ -155,6 +155,10 @@ object ParserCombinator {
 
     def map[NewOutput](fn: Output => NewOutput): Parser[NewOutput] = {
       ParserCombinator.map(this, fn)
+    }
+
+    def pred(predicate: Output => Boolean): Parser[Output] = {
+      ParserCombinator.pred(this, predicate)
     }
   }
 
