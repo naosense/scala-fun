@@ -138,12 +138,8 @@ object ParserCombinator {
   }
 
   def singleElement(): Parser[Element] = {
-    map(
-      left(elementStart(), matchLiteral("/>")),
-      { case (name, attributes) =>
-        Element(name, attributes, Vector())
-      }
-    )
+    left(elementStart(), matchLiteral("/>"))
+      .map({ case (name, attributes) => Element(name, attributes, Vector()) })
   }
 
   type ParseResult[Output] = Try[(String, Output)]
