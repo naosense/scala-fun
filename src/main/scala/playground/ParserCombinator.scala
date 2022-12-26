@@ -152,7 +152,14 @@ object ParserCombinator {
   }
 
   def parentElement(): Parser[Element] = {
-    pair(openElement(), left(zeroOrMore(element(), closeElement())))
+    openElement().flatMap(el =>
+      left(zeroOrMore(element()), closeElement(el.name))
+        .map(children => el.copy(children = children))
+    )
+  }
+
+  def whitespaceWrap[A](parser: Parser[A]) : Parser[A] = {
+    right(space0(), left(parser, space0()))
   }
 
   def closeElement(expected: String): Parser[String] = {
