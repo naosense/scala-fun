@@ -116,16 +116,13 @@ object ParserCombinator {
   }
 
   def quotedString(): Parser[String] = {
-    map(
-      right(
-        matchLiteral("\""),
-        left(
-          zeroOrMore(pred(anyChar, (c: Char) => c != '"')),
-          matchLiteral("\"")
-        )
-      ),
-      (chars: Vector[Char]) => chars.mkString
-    )
+    right(
+      matchLiteral("\""),
+      left(
+        zeroOrMore(pred(anyChar, (c: Char) => c != '"')),
+        matchLiteral("\"")
+      )
+    ).map((chars: Vector[Char]) => chars.mkString)
   }
 
   def attributePair(): Parser[(String, String)] = {
@@ -156,6 +153,9 @@ object ParserCombinator {
       this (input)
     }
 
+    def map[NewOutput](fn: Output => NewOutput): Parser[NewOutput] = {
+      ParserCombinator.map(this, fn)
+    }
   }
 
   case class ParseError(input: String) extends Throwable
