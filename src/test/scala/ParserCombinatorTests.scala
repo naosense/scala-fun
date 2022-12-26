@@ -1,6 +1,6 @@
 import playground.ParserCombinator._
 
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success}
 
 class ParserCombinatorTests extends munit.FunSuite {
 
@@ -41,5 +41,28 @@ class ParserCombinatorTests extends munit.FunSuite {
     assertEquals(parser("hahaha"), Success(("", Vector((), (), ()))))
     assertEquals(parser("ahah"), Success(("ahah", Vector.empty)))
     assertEquals(parser(""), Success("", Vector.empty))
+  }
+
+  test("predicate combinator") {
+    val parser = pred(anyChar, (c: Char) => c == 'o')
+    assertEquals(parser("omg"), Success(("mg", 'o')))
+  }
+
+  test("quoted string parser") {
+    assertEquals(quotedString().parse("\"Hello Joe!\""), Success("", "Hello Joe!"))
+  }
+
+  test("attribute parser") {
+    assertEquals(attributes().parse(" one=\"1\" two=\"2\""), Success("", Vector(("one", "1"), ("two", "2"))))
+  }
+
+  test("single element parser") {
+    assertEquals(
+      singleElement().parse("<div class=\"float\"/>"),
+      Success((
+        "",
+        Element("div", Vector(("class", "float")), Vector()))
+      )
+    )
   }
 }
