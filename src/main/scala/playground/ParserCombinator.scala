@@ -35,16 +35,7 @@ object ParserCombinator {
   }
 
   def pair[R1, R2](parser1: Parser[R1], parser2: Parser[R2]): Parser[(R1, R2)] = {
-    (input: String) => {
-      parser1(input) match {
-        case Success((nextInput, result1)) =>
-          parser2(nextInput) match {
-            case Success((finalInput, result2)) => Success((finalInput, (result1, result2)))
-            case Failure(ex) => Failure(ex)
-          }
-        case Failure(ex) => Failure(ex)
-      }
-    }
+    parser1.flatMap(result1 => parser2.map(result2 => (result1, result2)))
   }
 
   def map[A, B](parser: Parser[A], fn: (A) => B): Parser[B] = {
