@@ -148,7 +148,7 @@ object ParserCombinator {
   }
 
   def element(): Parser[Element] = {
-    either(singleElement(), openElement())
+    whitespaceWrap(either(singleElement(), openElement()))
   }
 
   def parentElement(): Parser[Element] = {
