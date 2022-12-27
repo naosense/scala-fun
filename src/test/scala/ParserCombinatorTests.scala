@@ -5,8 +5,8 @@ import scala.util.{Failure, Success}
 class ParserCombinatorTests extends munit.FunSuite {
 
   test("literal parser") {
-    val parseJoe = matchLiteral("Hello Joe!")
-    assertEquals(parseJoe("Hello Joe!"), Success("", ()))
+    val parseJoe = literal("Hello Joe!")
+    assertEquals(parseJoe.parse("Hello Joe!"), Success("", ()))
   }
 
   test("identifier parser") {
@@ -16,36 +16,36 @@ class ParserCombinatorTests extends munit.FunSuite {
   }
 
   test("pair combinator") {
-    val tagOpener = pair(matchLiteral("<"), identifier _)
-    assertEquals(tagOpener("<my-first-element/>"), Success(("/>", ((), "my-first-element"))))
-    assertEquals(tagOpener("oops"), Failure(ParseError("oops")))
-    assertEquals(tagOpener("<!oops"), Failure(ParseError("!oops")))
+    val tagOpener = pair(literal("<"), identifier _)
+    assertEquals(tagOpener.parse("<my-first-element/>"), Success(("/>", ((), "my-first-element"))))
+    assertEquals(tagOpener.parse("oops"), Failure(ParseError("oops")))
+    assertEquals(tagOpener.parse("<!oops"), Failure(ParseError("!oops")))
   }
 
   test("right combinator") {
-    val tagOpener = right(matchLiteral("<"), identifier _)
-    assertEquals(tagOpener("<my-first-element/>"), Success(("/>", "my-first-element")))
-    assertEquals(tagOpener("oops"), Failure(ParseError("oops")))
-    assertEquals(tagOpener("<!oops"), Failure(ParseError("!oops")))
+    val tagOpener = right(literal("<"), identifier _)
+    assertEquals(tagOpener.parse("<my-first-element/>"), Success(("/>", "my-first-element")))
+    assertEquals(tagOpener.parse("oops"), Failure(ParseError("oops")))
+    assertEquals(tagOpener.parse("<!oops"), Failure(ParseError("!oops")))
   }
 
   test("one or more combinator") {
-    val parser = oneOrMore(matchLiteral("ha"))
-    assertEquals(parser("hahaha"), Success(("", Vector((), (), ()))))
-    assertEquals(parser("ahah"), Failure(ParseError("ahah")))
-    assertEquals(parser(""), Failure(ParseError("")))
+    val parser = oneOrMore(literal("ha"))
+    assertEquals(parser.parse("hahaha"), Success(("", Vector((), (), ()))))
+    assertEquals(parser.parse("ahah"), Failure(ParseError("ahah")))
+    assertEquals(parser.parse(""), Failure(ParseError("")))
   }
 
   test("zero or more combinator") {
-    val parser = zeroOrMore(matchLiteral("ha"))
-    assertEquals(parser("hahaha"), Success(("", Vector((), (), ()))))
-    assertEquals(parser("ahah"), Success(("ahah", Vector.empty)))
-    assertEquals(parser(""), Success("", Vector.empty))
+    val parser = zeroOrMore(literal("ha"))
+    assertEquals(parser.parse("hahaha"), Success(("", Vector((), (), ()))))
+    assertEquals(parser.parse("ahah"), Success(("ahah", Vector.empty)))
+    assertEquals(parser.parse(""), Success("", Vector.empty))
   }
 
   test("predicate combinator") {
-    val parser = pred(anyChar, (c: Char) => c == 'o')
-    assertEquals(parser("omg"), Success(("mg", 'o')))
+    val parser = pred(anychar, (c: Char) => c == 'o')
+    assertEquals(parser.parse("omg"), Success(("mg", 'o')))
   }
 
   test("quoted string parser") {

@@ -11,7 +11,7 @@ object ParserCombinator {
     }
   }
 
-  def matchLiteral(expected: String): Parser[Unit] = {
+  def literal(expected: String): Parser[Unit] = {
     (input: String) => {
       input.take(expected.length) match {
         case s if s == expected => Success((input.drop(expected.length), ()))
@@ -40,7 +40,7 @@ object ParserCombinator {
 
   def map[A, B](parser: Parser[A], fn: (A) => B): Parser[B] = {
     (input: String) => {
-      parser(input) match {
+      parser.parse(input) match {
         case Success((nextInput, result)) => Success((nextInput, fn(result)))
         case err@Failure(_) => err.asInstanceOf[ParseResult[B]]
       }
@@ -78,7 +78,7 @@ object ParserCombinator {
     }
   }
 
-  def anyChar(input: String): ParseResult[Char] = {
+  def anychar(input: String): ParseResult[Char] = {
     input.toList match {
       case first :: rest => Success((rest.mkString, first))
       case _ => Failure(ParseError(input))
@@ -87,37 +87,37 @@ object ParserCombinator {
 
   def pred[A](parser: Parser[A], predicate: A => Boolean): Parser[A] = {
     (input: String) => {
-      parser(input) match {
+      parser.parse(input) match {
         case Success((nextInput, value)) if predicate(value) => Success((nextInput, value))
         case _ => Failure(ParseError(input))
       }
     }
   }
 
-  def whitespaceChar(): Parser[Char] = {
-    pred(anyChar, c => c.isWhitespace)
+  def whitespace(): Parser[Char] = {
+    pred(anychar, c => c.isWhitespace)
   }
 
   def space1(): Parser[Vector[Char]] = {
-    oneOrMore(whitespaceChar())
+    oneOrMore(whitespace())
   }
 
   def space0(): Parser[Vector[Char]] = {
-    zeroOrMore(whitespaceChar())
+    zeroOrMore(whitespace())
   }
 
   def quotedString(): Parser[String] = {
     right(
-      matchLiteral("\""),
+      literal("\""),
       left(
-        zeroOrMore((anyChar: Parser[Char]).pred((c: Char) => c != '"')),
-        matchLiteral("\"")
+        zeroOrMore((anychar: Parser[Char]).pred((c: Char) => c != '"')),
+        literal("\"")
       )
     ).map((chars: Vector[Char]) => chars.mkString)
   }
 
   def attributePair(): Parser[(String, String)] = {
-    pair(identifier, right(matchLiteral("="), quotedString()))
+    pair(identifier, right(literal("="), quotedString()))
   }
 
   def attributes(): Parser[Vector[(String, String)]] = {
@@ -125,30 +125,30 @@ object ParserCombinator {
   }
 
   def elementStart(): Parser[(String, Vector[(String, String)])] = {
-    right(matchLiteral("<"), pair(identifier, attributes()))
+    right(literal("<"), pair(identifier, attributes()))
   }
 
   def singleElement(): Parser[Element] = {
-    left(elementStart(), matchLiteral("/>"))
+    left(elementStart(), literal("/>"))
       .map({ case (name, attributes) => Element(name, attributes, Vector()) })
   }
 
   def openElement(): Parser[Element] = {
-    left(elementStart(), matchLiteral(">"))
+    left(elementStart(), literal(">"))
       .map({ case (name, attributes) => Element(name, attributes, Vector()) })
   }
 
   def either[A](parser1: Parser[A], parser2: Parser[A]): Parser[A] = {
     (input: String) => {
-      parser1(input) match {
+      parser1.parse(input) match {
         case ok@Success(_) => ok
-        case _ => parser2(input)
+        case _ => parser2.parse(input)
       }
     }
   }
 
   def element(): Parser[Element] = {
-    whitespaceWrap(either(singleElement(), parentElement()))
+    wrap(either(singleElement(), parentElement()))
   }
 
   def parentElement(): Parser[Element] = {
@@ -158,23 +158,22 @@ object ParserCombinator {
     )
   }
 
-  def whitespaceWrap[A](parser: Parser[A]) : Parser[A] = {
+  def wrap[A](parser: Parser[A]): Parser[A] = {
     right(space0(), left(parser, space0()))
   }
 
   def closeElement(expected: String): Parser[String] = {
     right(
-      matchLiteral("</"),
-      left(identifier, matchLiteral(">"))
+      literal("</"),
+      left(identifier, literal(">"))
     ).pred(name => name == expected)
   }
 
   type ParseResult[Output] = Try[(String, Output)]
 
-  trait Parser[Output] extends (String => ParseResult[Output]) {
-    def parse(input: String): ParseResult[Output] = {
-      this (input)
-    }
+  @FunctionalInterface
+  trait Parser[Output] {
+    def parse(input: String): ParseResult[Output]
 
     def map[NewOutput](fn: Output => NewOutput): Parser[NewOutput] = {
       ParserCombinator.map(this, fn)
@@ -186,12 +185,16 @@ object ParserCombinator {
 
     def flatMap[NewOutput](fn: Output => Parser[NewOutput]): Parser[NewOutput] = {
       (input: String) => {
-        this (input) match {
+        this.parse(input) match {
           case Success((nextInput, result)) => fn(result).parse(nextInput)
           case err@Failure(_) => err.asInstanceOf[ParseResult[NewOutput]]
         }
       }
     }
+  }
+
+  implicit def function1toParser[Output](f1: String => ParseResult[Output]): Parser[Output] = {
+    (input: String) => f1.apply(input)
   }
 
   case class ParseError(input: String) extends Throwable
