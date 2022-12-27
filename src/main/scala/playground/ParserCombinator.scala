@@ -58,7 +58,10 @@ object ParserCombinator {
   }
 
   def oneOrMore[A](parser: Parser[A]): Parser[Vector[A]] = {
-    map(pair(parser, zeroOrMore(parser)), { case (head: A, tail: Vector[A]) => head +: tail })
+    map(
+      pair(parser, zeroOrMore(parser)),
+      { case (head: A, tail: Vector[A]) => head +: tail }
+    )
   }
 
   def zeroOrMore[A](parser: Parser[A]): Parser[Vector[A]] = {
@@ -193,7 +196,7 @@ object ParserCombinator {
     }
   }
 
-  implicit def function1toParser[Output](f1: String => ParseResult[Output]): Parser[Output] = {
+  implicit def function2parser[Output](f1: String => ParseResult[Output]): Parser[Output] = {
     (input: String) => f1.apply(input)
   }
 
