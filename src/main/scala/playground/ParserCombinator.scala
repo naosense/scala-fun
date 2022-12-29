@@ -47,17 +47,16 @@ object ParserCombinator {
 
   // Tuples cannot be directly destructured in method or function parameters.
   def left[R1, R2](parser1: Parser[R1], parser2: Parser[R2]): Parser[R1] = {
-    map(pair(parser1, parser2), { case (l, _) => l })
+    pair(parser1, parser2).map({ case (l, _) => l })
   }
 
   // ditto
   def right[R1, R2](parser1: Parser[R1], parser2: Parser[R2]): Parser[R2] = {
-    map(pair(parser1, parser2), { case (_, r) => r })
+    pair(parser1, parser2).map({ case (_, r) => r })
   }
 
   def oneOrMore[A](parser: Parser[A]): Parser[Vector[A]] = {
-    map(
-      pair(parser, zeroOrMore(parser)),
+    pair(parser, zeroOrMore(parser)).map(
       { case (head: A, tail: Vector[A]) => head +: tail }
     )
   }
@@ -96,7 +95,7 @@ object ParserCombinator {
   }
 
   def whitespace(): Parser[Char] = {
-    pred(anychar, c => c.isWhitespace)
+    (anychar _).pred(c => c.isWhitespace)
   }
 
   def space1(): Parser[Vector[Char]] = {
@@ -135,10 +134,8 @@ object ParserCombinator {
   }
 
   def openElement(): Parser[Element] = {
-    map(
-      left(elementStart(), literal(">")),
-      { case (name, attributes) => Element(name, attributes, Vector()) }
-    )
+    left(elementStart(), literal(">"))
+      .map({ case (name, attributes) => Element(name, attributes, Vector()) })
   }
 
   def either[A](parser1: Parser[A], parser2: Parser[A]): Parser[A] = {
@@ -166,12 +163,10 @@ object ParserCombinator {
   }
 
   def closeElement(expected: String): Parser[String] = {
-    pred(
-      right(
-        literal("</"),
-        left(identifier, literal(">"))
-      ), name => name == expected
-    )
+    right(
+      literal("</"),
+      left(identifier, literal(">"))
+    ).pred(name => name == expected)
   }
 
   type ParseResult[Output] = Try[(String, Output)]
