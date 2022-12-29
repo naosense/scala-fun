@@ -21,17 +21,15 @@ object ParserCombinator {
   }
 
   def identifier(input: String): ParseResult[String] = {
-    val matched = new StringBuilder()
-
-    input.toList match {
-      case first :: _ if first.isLetter => matched.append(first)
-      case _ => return Failure(ParseError(input))
+    pair(
+      (anychar _).pred(c => c.isLetter),
+      zeroOrMore((anychar _).pred(c => c.isLetterOrDigit || c == '-'))
+    ).parse(input)
+    match {
+      case Success((rest, (first, second))) =>
+        Success((rest, first + second.mkString))
+      case Failure(exception) => Failure(ParseError(input))
     }
-
-    matched.append(input.drop(1).takeWhile(c => c.isLetterOrDigit || c == '-'))
-
-    val nextIndex = matched.length;
-    Success((input.drop(nextIndex), matched.toString()))
   }
 
   def pair[R1, R2](parser1: Parser[R1], parser2: Parser[R2]): Parser[(R1, R2)] = {
@@ -137,8 +135,10 @@ object ParserCombinator {
   }
 
   def openElement(): Parser[Element] = {
-    left(elementStart(), literal(">"))
-      .map({ case (name, attributes) => Element(name, attributes, Vector()) })
+    map(
+      left(elementStart(), literal(">")),
+      { case (name, attributes) => Element(name, attributes, Vector()) }
+    )
   }
 
   def either[A](parser1: Parser[A], parser2: Parser[A]): Parser[A] = {
@@ -166,10 +166,12 @@ object ParserCombinator {
   }
 
   def closeElement(expected: String): Parser[String] = {
-    right(
-      literal("</"),
-      left(identifier, literal(">"))
-    ).pred(name => name == expected)
+    pred(
+      right(
+        literal("</"),
+        left(identifier, literal(">"))
+      ), name => name == expected
+    )
   }
 
   type ParseResult[Output] = Try[(String, Output)]
