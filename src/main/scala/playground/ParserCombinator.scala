@@ -47,12 +47,12 @@ object ParserCombinator {
 
   // Tuples cannot be directly destructured in method or function parameters.
   def left[R1, R2](parser1: Parser[R1], parser2: Parser[R2]): Parser[R1] = {
-    map(pair(parser1, parser2), (r: (R1, R2)) => r._1)
+    map(pair(parser1, parser2), { case (l, _) => l })
   }
 
   // ditto
   def right[R1, R2](parser1: Parser[R1], parser2: Parser[R2]): Parser[R2] = {
-    map(pair(parser1, parser2), (r: (R1, R2)) => r._2)
+    map(pair(parser1, parser2), { case (_, r) => r })
   }
 
   def oneOrMore[A](parser: Parser[A]): Parser[Vector[A]] = {
