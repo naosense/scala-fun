@@ -24,8 +24,7 @@ object ParserCombinator {
     pair(
       (anychar _).pred(c => c.isLetter),
       zeroOrMore((anychar _).pred(c => c.isLetterOrDigit || c == '-'))
-    ).parse(input)
-    match {
+    ).parse(input) match {
       case Success((rest, (first, second))) =>
         Success((rest, first + second.mkString))
       case Failure(exception) => Failure(ParseError(input))
@@ -33,7 +32,10 @@ object ParserCombinator {
   }
 
   def pair[R1, R2](parser1: Parser[R1], parser2: Parser[R2]): Parser[(R1, R2)] = {
-    parser1.flatMap(result1 => parser2.map(result2 => (result1, result2)))
+    for {
+      result1 <- parser1
+      result2 <- parser2
+    } yield (result1, result2)
   }
 
   def map[A, B](parser: Parser[A], fn: (A) => B): Parser[B] = {
@@ -152,10 +154,10 @@ object ParserCombinator {
   }
 
   def parentElement(): Parser[Element] = {
-    openElement().flatMap(el =>
-      left(zeroOrMore(element()), closeElement(el.name))
-        .map(children => el.copy(children = children))
-    )
+    for {
+      el <- openElement()
+      children <- left(zeroOrMore(element()), closeElement(el.name))
+    } yield el.copy(children = children)
   }
 
   def wrap[A](parser: Parser[A]): Parser[A] = {

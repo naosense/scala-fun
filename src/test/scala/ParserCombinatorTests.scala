@@ -68,8 +68,7 @@ class ParserCombinatorTests extends munit.FunSuite {
 
   test("xml parser") {
     val doc =
-      """
-        |<top label="Top">
+      """<top label="Top">
         |    <semi-bottom label="Bottom"/>
         |    <middle>
         |        <bottom label="Another bottom"/>
